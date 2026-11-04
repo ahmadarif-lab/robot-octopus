@@ -1,0 +1,24 @@
+{
+  "name": "octobot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Octobot: drivable procedural robot octopus in a 3D seabed world (Three.js)",
+  "scripts": {
+    "build": "esbuild src/main.js --bundle --minify --format=iife --target=es2020 --outfile=dist/app.js",
+    "dev": "esbuild src/main.js --bundle --format=iife --target=es2020 --outfile=dist/app.js --sourcemap --watch --servedir=.",
+    "build:site": "npm run build && rm -rf site && mkdir -p site/dist && cp index.html style.css site/ && cp -R public site/ && cp -R root/. site/ && cp dist/app.js site/dist/",
+    "android:debug": "scripts/build-android.sh assembleDebug",
+    "android:release": "scripts/build-android.sh bundleRelease && scripts/build-android.sh assembleRelease && scripts/sign-release.sh",
+    "deploy": "npm run build:site && npx wrangler@4 deploy"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.6.0",
+    "esbuild": "^0.28.2",
+    "three": "^0.187.0"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/core": "^8.6.0"
+  },
+  "license": "SEE LICENSE IN LICENSE"
+}

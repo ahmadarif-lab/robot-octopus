@@ -1,0 +1,12 @@
+node_modules
+dist
+site
+.wrangler
+.playwright-mcp
+.DS_Store
+release
+server/node_modules
+key.properties
+*.jks
+*.aab
+*.apk

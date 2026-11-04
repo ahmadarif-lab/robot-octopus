@@ -1,0 +1,13 @@
+{
+  "appId": "id.ahmadarif.octobot",
+  "appName": "Octobot",
+  "webDir": "site",
+  "android": {
+    "backgroundColor": "#efe8dc"
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "disable"
+    }
+  }
+}

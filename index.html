@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#ff5a1f">
+<title>Octobot: Drivable 3D Robot Octopus</title>
+<meta name="description" content="Drive an 8-arm robot octopus across a 3D seabed in your browser. Take its parts apart, fire the jet, or let AI mode explore on its own.">
+<meta name="author" content="Ahmad Arif">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="https://octobot.ahmadarif.id/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Octobot">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://octobot.ahmadarif.id/">
+<meta property="og:title" content="Octobot: Drivable 3D Robot Octopus">
+<meta property="og:description" content="Drive an 8-arm robot octopus across a 3D seabed in your browser. Take its parts apart, fire the jet, or let AI mode explore on its own.">
+<meta property="og:image" content="https://octobot.ahmadarif.id/public/og-image.jpg">
+<meta property="og:image:secure_url" content="https://octobot.ahmadarif.id/public/og-image.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Render of the white and orange Octobot robot octopus with eight arms on the seabed">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Octobot: Drivable 3D Robot Octopus">
+<meta name="twitter:description" content="Drive an 8-arm robot octopus across a 3D seabed in your browser. Take its parts apart, fire the jet, or let AI mode explore on its own.">
+<meta name="twitter:image" content="https://octobot.ahmadarif.id/public/og-image.jpg">
+<meta name="twitter:image:alt" content="Render of the white and orange Octobot robot octopus with eight arms on the seabed">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "Octobot", "url": "https://octobot.ahmadarif.id/", "description": "Drive an 8-arm robot octopus across a 3D seabed in your browser. Take its parts apart, fire the jet, or let AI mode explore on its own.", "image": "https://octobot.ahmadarif.id/public/og-image.jpg", "applicationCategory": "GameApplication", "operatingSystem": "Any", "browserRequirements": "Requires WebGL", "inLanguage": "en", "isAccessibleForFree": true, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "author": {"@type": "Person", "name": "Ahmad Arif"}}</script>
+<link rel="icon" href="public/icon.svg" type="image/svg+xml">
+<link rel="manifest" href="public/manifest.webmanifest">
+<link rel="apple-touch-icon" href="public/icon-192.png">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Octobot">
+<style>
+#loader { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; background: #efe8dc; color: #16161b; font-family: "Helvetica Neue", Helvetica, Inter, Arial, sans-serif; transition: opacity .45s ease; overflow: hidden; }
+#loader.gone { opacity: 0; pointer-events: none; }
+#loader .bot { width: 132px; height: 132px; animation: bot-bob 2.4s ease-in-out infinite; will-change: transform; }
+#loader svg { display: block; overflow: visible; }
+#loader .arm { fill: none; stroke: #16161b; stroke-width: 9; stroke-linecap: round; transform-box: view-box; animation: arm-wave 1.5s ease-in-out infinite alternate; will-change: transform; }
+#loader .arm:nth-of-type(1) { transform-origin: 30px 58px; animation-delay: 0s; }
+#loader .arm:nth-of-type(2) { transform-origin: 42px 62px; animation-delay: -.3s; }
+#loader .arm:nth-of-type(3) { transform-origin: 60px 64px; animation-delay: -.6s; }
+#loader .arm:nth-of-type(4) { transform-origin: 78px 62px; animation-delay: -.9s; }
+#loader .arm:nth-of-type(5) { transform-origin: 90px 58px; animation-delay: -1.2s; }
+#loader .bubble { position: absolute; bottom: -24px; border-radius: 50%; border: 2px solid rgba(47, 127, 143, .55); background: rgba(255, 255, 255, .25); animation: bubble-rise linear infinite; will-change: transform, opacity; }
+#loader h2 { font-size: 34px; font-weight: 600; letter-spacing: -.02em; line-height: 1; }
+#loader .meter { position: relative; width: min(260px, 64vw); height: 4px; overflow: hidden; background: rgba(22, 22, 27, .12); }
+#loader .sweep, #loader .fill { position: absolute; inset: 0; background: #ff5a1f; transform-origin: left; }
+#loader .sweep { width: 34%; animation: sweep 1.15s ease-in-out infinite; }
+#loader .fill { transform: scaleX(0); transition: transform .25s ease-out; }
+#loader.measured .sweep { display: none; }
+#loader small { font: 600 10px ui-monospace, "SF Mono", Menlo, Consolas, monospace; letter-spacing: .14em; color: #6d675d; min-height: 13px; text-align: center; padding: 0 20px; }
+#loader.failed .meter { display: none; }
+#loader.failed small { color: #b42c14; font-size: 12px; letter-spacing: .02em; line-height: 1.5; max-width: 340px; }
+#loader.failed .bot, #loader.failed .arm { animation: none; }
+@keyframes bot-bob { from, to { transform: translateY(5px); } 50% { transform: translateY(-5px); } }
+@keyframes arm-wave { from { transform: rotate(-9deg); } to { transform: rotate(9deg); } }
+@keyframes sweep { from { transform: translateX(-110%); } to { transform: translateX(310%); } }
+@keyframes bubble-rise { from { transform: translateY(0); opacity: 0; } 12% { opacity: 1; } 85% { opacity: .8; } to { transform: translateY(-105vh); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { #loader .bot, #loader .arm, #loader .bubble { animation: none; } #loader .bubble { display: none; } }
+</style>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="loader" role="status" aria-live="polite">
+  <i class="bubble" style="left:14%;width:14px;height:14px;animation-duration:7s"></i>
+  <i class="bubble" style="left:27%;width:7px;height:7px;animation-duration:5s;animation-delay:-2s"></i>
+  <i class="bubble" style="left:68%;width:20px;height:20px;animation-duration:9s;animation-delay:-4s"></i>
+  <i class="bubble" style="left:82%;width:9px;height:9px;animation-duration:6s;animation-delay:-1s"></i>
+  <div class="bot"><svg viewBox="0 0 120 120" width="132" height="132" aria-hidden="true">
+    <path class="arm" d="M30 58c-2 18-18 16-20 32"/>
+    <path class="arm" d="M42 62c0 22-10 24-12 44"/>
+    <path class="arm" d="M60 64v48"/>
+    <path class="arm" d="M78 62c0 22 10 24 12 44"/>
+    <path class="arm" d="M90 58c2 18 18 16 20 32"/>
+    <path d="M28 56a32 32 0 1 1 64 0v8H28z" fill="#f5f2eb" stroke="#16161b" stroke-width="4"/>
+    <path d="M28 44h64" stroke="#16161b" stroke-width="3" fill="none"/>
+    <circle cx="60" cy="50" r="15" fill="#16161b"/><circle cx="60" cy="50" r="10" fill="none" stroke="#ff5a1f" stroke-width="4"/>
+  </svg></div>
+  <h2>Octobot</h2>
+  <div class="meter"><i class="sweep"></i><i class="fill"></i></div>
+  <small id="loader-text">LOADING GAME</small>
+</div>
+<canvas id="scene"></canvas>
+<div id="exit-confirm" role="dialog" aria-modal="true" aria-labelledby="exit-title" hidden>
+  <div class="card">
+    <span class="eyebrow"><i></i>CONFIRM</span>
+    <h3 id="exit-title">Quit Octobot?</h3>
+    <p id="exit-note"></p>
+    <div class="actions">
+      <button type="button" id="exit-cancel">Cancel</button>
+      <button type="button" id="exit-yes">Quit</button>
+    </div>
+  </div>
+</div>
+<section id="start-menu" aria-label="Main menu" hidden>
+  <div class="menu-reticle" aria-hidden="true"><svg viewBox="0 0 200 200">
+    <g class="ring-a"><line x1="100" y1="6" x2="100" y2="14" transform="rotate(0 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(5 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(10 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(15 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(20 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(25 100 100)"/><line x1="100" y1="6" x2="100" y2="14" transform="rotate(30 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(35 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(40 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(45 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(50 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(55 100 100)"/><line x1="100" y1="6" x2="100" y2="14" transform="rotate(60 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(65 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(70 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(75 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(80 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(85 100 100)"/><line x1="100" y1="6" x2="100" y2="14" transform="rotate(90 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(95 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(100 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(105 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(110 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(115 100 100)"/><line x1="100" y1="6" x2="100" y2="14" transform="rotate(120 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(125 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(130 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(135 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(140 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(145 100 100)"/><line x1="100" y1="6" x2="100" y2="14" transform="rotate(150 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(155 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(160 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(165 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(170 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(175 100 100)"/><line x1="100" y1="6" x2="100" y2="14" transform="rotate(180 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(185 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(190 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(195 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(200 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(205 100 100)"/><line x1="100" y1="6" x2="100" y2="14" transform="rotate(210 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(215 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(220 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(225 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(230 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(235 100 100)"/><line x1="100" y1="6" x2="100" y2="14" transform="rotate(240 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(245 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(250 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(255 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(260 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(265 100 100)"/><line x1="100" y1="6" x2="100" y2="14" transform="rotate(270 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(275 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(280 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(285 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(290 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(295 100 100)"/><line x1="100" y1="6" x2="100" y2="14" transform="rotate(300 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(305 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(310 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(315 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(320 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(325 100 100)"/><line x1="100" y1="6" x2="100" y2="14" transform="rotate(330 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(335 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(340 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(345 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(350 100 100)"/><line x1="100" y1="6" x2="100" y2="10" transform="rotate(355 100 100)"/></g>
+    <circle class="ring-b" cx="100" cy="100" r="82"/>
+    <path class="arc" d="M100 26a74 74 0 0 1 64 37"/><path class="arc" d="M100 174a74 74 0 0 1-64-37"/>
+    <path class="cross" d="M100 0v10M100 190v10M0 100h10M190 100h10"/>
+  </svg></div>
+  <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+  <div class="menu-panel">
+    <header class="menu-brand">
+      <span class="eyebrow"><i></i>EXPEDITION ROBOTICS / EIGHT-ARM RIDE</span>
+      <h2>OCTOBOT<em>/</em></h2>
+      <p>A robot octopus on the seabed. Explore, take it apart, and meet other players.</p>
+    </header>
+    <nav class="modes" id="menu-items">
+      <button type="button" id="menu-resume" hidden><span class="idx">00</span><span class="txt"><b>Resume</b><small id="resume-note"></small></span><svg class="go" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button>
+      <button type="button" id="start-single"><span class="idx">01</span><span class="txt"><b>Play Solo</b><small id="single-note">Explore the sea without other players</small></span><svg class="go" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button>
+      <button type="button" id="start-multi"><span class="idx">02</span><span class="txt"><b>Play Together</b><small id="start-count">Checking server...</small></span><svg class="go" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button>
+      <button type="button" id="menu-settings"><span class="idx">03</span><span class="txt"><b>Settings</b><small>Graphics, sound, language and display</small></span><svg class="go" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button>
+      <button type="button" id="menu-exit" hidden><span class="idx">04</span><span class="txt"><b>Quit</b><small>Close the game</small></span><svg class="go" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button>
+    </nav>
+    <footer class="menu-tele">
+      <span id="tele-server"><i></i><b>CHECKING</b></span>
+      <span>GRAPHICS <b id="tele-quality">-</b></span>
+      <span>SOUND <b id="tele-sound">-</b></span>
+    </footer>
+  </div>
+</section>
+<noscript><p>Octobot is a drivable 3D robot octopus that runs in the browser. Enable JavaScript and WebGL to play.</p></noscript>
+<div id="labels"></div>
+<div id="tags"></div>
+
+<div id="hud">
+  <header class="top">
+    <div class="logo"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M6 12a6 6 0 1 1 12 0"/><path d="M6 12c0 4-3 3-3 6M9 13c0 4-2 4-2 7M12 13v7M15 13c0 4 2 4 2 7M18 12c0 4 3 3 3 6"/></svg><b>OC-8</b></div>
+    <div class="title"><small>EXPEDITION ROBOTICS / EIGHT-ARM RIDE</small><h1>Octobot <i>/</i></h1><small>FLEXIBLE MANIPULATOR / FIELD SIMULATOR</small></div>
+    <dl class="tele">
+      <div><dt>POSITION X / Z</dt><dd id="t-pos">0 / 0</dd></div>
+      <div><dt>DISTANCE</dt><dd id="t-odo">0.0 M</dd></div>
+      <div><dt>TIME</dt><dd id="t-time">00:00:00</dd></div>
+      <div><dt>STATUS</dt><dd class="hot" id="t-status">STANDBY</dd></div>
+    </dl>
+    <button id="btn-menu" type="button" aria-label="Main menu" title="Main menu (Esc)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+    <button id="btn-settings" type="button" aria-label="Settings" title="Settings" aria-expanded="false" aria-controls="settings">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/></svg>
+    </button>
+    <button id="btn-sound" type="button" aria-label="Mute sound" title="Mute sound (M)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z"/><path class="wave" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/><path class="x" d="M16 9.5l5 5M21 9.5l-5 5"/></svg>
+    </button>
+    <button id="btn-fs" type="button" aria-label="Fullscreen" title="Fullscreen (F)">
+      <svg class="enter" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+      <svg class="leave" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>
+    </button>
+    <button id="pad-ai" data-pad="ai" aria-label="AI mode"><i></i>AI</button>
+  </header>
+
+  <aside class="col left">
+    <section class="panel">
+      <h3>MOTION <span>01</span></h3>
+      <div class="metrics">
+        <div><b id="v-speed">0.0</b><small>M/S</small></div>
+        <div class="r"><b id="v-thrust">0</b><small>N THRUST</small></div>
+      </div>
+      <canvas id="graph"></canvas>
+      <div class="mini"><span>STEPS <b id="v-steps">0</b></span><span>GEAR <b id="v-gear">N</b></span></div>
+    </section>
+    <section class="panel">
+      <h3>POWER <span>02</span></h3>
+      <div class="metrics"><div><b id="v-batt">100</b><small>% BATTERY</small></div>
+        <div id="cells" class="cells"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+      <div class="mini"><span>CURRENT <b id="v-amp">6.0</b> A</span><span>TEMP <b id="v-temp">22</b> °C</span></div>
+    </section>
+    <section class="panel">
+      <h3>ARM FLEX <span>03</span></h3>
+      <div id="arms"></div>
+    </section>
+  </aside>
+
+  <aside class="col right">
+    <section class="panel">
+      <h3>RADAR <span>04</span></h3>
+      <div class="radar-wrap">
+        <canvas id="radar"></canvas>
+        <ul class="kv">
+          <li>DEPTH <b id="v-depth">0</b></li>
+          <li>HEADING <b id="v-heading">000</b></li>
+          <li>PITCH <b id="v-pitch">0</b></li>
+          <li>ROLL <b id="v-roll">0</b></li>
+        </ul>
+      </div>
+    </section>
+    <section class="panel">
+      <h3>ASSEMBLY <span>05</span></h3>
+      <div class="chips">
+        <button data-part="lens">LENS</button>
+        <button data-part="mantle">MANTLE</button>
+        <button data-part="pump">PUMP</button>
+        <button data-part="explode">EXPLODE ALL</button>
+        <button id="btn-demo">AUTO CYCLE</button>
+        <button id="btn-ai" class="ai-chip">AI MODE <kbd>I</kbd></button>
+      </div>
+    </section>
+    <section class="panel">
+      <h3>DISPLAY <span>06</span></h3>
+      <div class="chips">
+        <button id="btn-labels" class="on">LABELS</button>
+        <button id="btn-contour" class="on">CONTOUR</button>
+      </div>
+    </section>
+    <section class="panel">
+      <h3>SUBSYSTEMS <span>07</span></h3>
+      <ul class="subs">
+        <li><span>OPTICS<small>3 LENSES</small></span><em id="sub-optics">LOCKED</em></li>
+        <li><span>MANTLE SHELL<small>SIDE HINGES</small></span><em id="sub-mantle">LOCKED</em></li>
+        <li><span>PUMP CORE<small>COILS</small></span><em id="sub-pump">SPINNING</em></li>
+        <li><span>ARM CHAIN<small>208 LINKS / 416 WHEELS</small></span><em id="sub-arms">0/8 JALAN</em></li>
+        <li><span>SIPHON<small>PRESS SHIFT</small></span><em id="sub-siphon">STANDBY</em></li>
+        <li><span>SONAR<small id="sub-sonar-name">SCANNING</small></span><em id="sub-sonar">-</em></li>
+      </ul>
+    </section>
+  </aside>
+
+  <div class="state"><button type="button" id="net-chip" aria-label="Online players list">CONNECTING</button><small id="state-hint">AWAITING COMMAND</small><div id="state-big">STANDBY</div></div>
+
+  <footer class="drive">
+    <div class="dpad">
+      <button data-drive="forward" class="up" aria-label="Forward"><svg viewBox="0 0 24 24"><path d="M12 5l7 9H5z"/></svg><span>FORWARD</span><kbd>W</kbd></button>
+      <button data-drive="left" class="lf" aria-label="Turn left"><svg viewBox="0 0 24 24"><path d="M6 12l9-7v14z"/></svg><kbd>A</kbd></button>
+      <button data-drive="back" class="dn" aria-label="Reverse"><svg viewBox="0 0 24 24"><path d="M12 19l-7-9h14z"/></svg><span>REVERSE</span><kbd>S</kbd></button>
+      <button data-drive="right" class="rt" aria-label="Turn right"><svg viewBox="0 0 24 24"><path d="M18 12l-9 7V5z"/></svg><kbd>D</kbd></button>
+    </div>
+    <div class="gear">
+      <div class="gear-head"><small>SPEED</small><span><b id="gear-speed">0.0</b> M/S</span></div>
+      <div class="gear-bar"><i id="gear-fill"></i><u></u></div>
+      <div class="gear-scale"><span>REVERSE</span><span>0</span><span>FORWARD</span></div>
+      <div class="log"><span id="log-line"></span><div class="progress"><i id="demo-progress"></i></div></div>
+    </div>
+    <div class="side-btns">
+      <button data-drive="jet" class="jet" aria-label="Jet"><span>JET</span><kbd>SHIFT</kbd></button>
+      <button id="btn-explode-mini" aria-label="Explode"><span>EXPLODE</span><kbd>E</kbd></button>
+      <button id="btn-ai-mini" aria-label="AI mode"><span>AI</span><kbd>I</kbd></button>
+    </div>
+  </footer>
+
+  <div id="toast" role="status"></div>
+
+
+  <div id="gamepad">
+    <div id="stick" role="application" aria-label="Joystick for forward, reverse and turning">
+      <span class="tick n">FORWARD</span><span class="tick s">REVERSE</span>
+      <i class="ring"></i><i id="stick-knob"></i>
+    </div>
+    <div class="abxy">
+      <button id="pad-y" class="pad y" data-pad="mantle" aria-label="Y, mantle and pump"><b>Y</b><small id="pad-y-label">MANTLE</small></button>
+      <button id="pad-x" class="pad x" data-pad="lens" aria-label="X, lens"><b>X</b><small>LENS</small></button>
+      <button id="pad-b" class="pad b" data-pad="explode" aria-label="B, explode"><b>B</b><small>EXPLODE</small></button>
+      <button id="pad-a" class="pad a" data-drive="jetGo" aria-label="A, jet"><b>A</b><small>JET</small></button>
+    </div>
+  </div>
+</div>
+
+<section id="settings" aria-label="Settings" hidden>
+  <button type="button" id="settings-back" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H6M11 6l-6 6 6 6"/></svg>BACK</button>
+  <h3 id="players-title">ONLINE PLAYERS</h3>
+  <h3 class="set-only">GRAPHICS QUALITY</h3>
+  <div class="segments" role="group" aria-label="Graphics quality">
+    <button type="button" data-quality="auto">AUTO</button>
+    <button type="button" data-quality="high">HIGH</button>
+    <button type="button" data-quality="mid">MEDIUM</button>
+    <button type="button" data-quality="low">LOW</button>
+  </div>
+  <p id="quality-status" role="status"></p>
+  <p class="hint">Auto lowers quality when the game stutters, and raises it again when it runs smoothly.</p>
+  <div class="row"><span>SOUND</span><button type="button" id="set-sound">ON</button></div>
+  <div class="row volume"><label for="set-volume">VOLUME</label><input id="set-volume" type="range" min="0" max="100" step="5"><output id="volume-value"></output></div>
+  <div class="row"><span>PART LABELS</span><button type="button" id="set-labels">ON</button></div>
+  <div class="row"><span>TERRAIN CONTOURS</span><button type="button" id="set-contour">ON</button></div>
+  <div class="row"><span>LANGUAGE</span><div class="segments lang" role="group" aria-label="Language"><button type="button" data-lang="en">English</button><button type="button" data-lang="id">Indonesia</button></div></div>
+  <div class="row"><span>MODE</span><span id="set-mode"></span></div>
+  <div class="row"><span><span>VERSION</span> 1.0.1</span><a id="privacy-link" href="https://apps.ahmadarif.id/octobot/privacy/" target="_blank" rel="noopener">PRIVACY POLICY</a></div>
+  <p id="online-status" role="status"></p>
+  <p id="player-empty" class="hint" hidden>No other players in this room yet.</p>
+  <ul id="player-list"></ul>
+</section>
+<script>
+(function () {
+  var box = document.getElementById('loader');
+  var text = document.getElementById('loader-text');
+  var fill = box.querySelector('.fill');
+  var finished = false;
+  // The saved language is read here too, because the loader shows before the app script runs.
+  var id = false;
+  try { id = localStorage.getItem('oc8-lang') === 'id'; } catch (e) {}
+  var MSG = id ? {
+    start: 'MEMUAT PERMAINAN',
+    webgl: 'Permainan gagal dimuat. Pastikan WebGL aktif di browser, lalu muat ulang halaman ini.',
+    reload: 'Permainan gagal dimuat. Muat ulang halaman ini.',
+    download: 'Permainan gagal diunduh. Periksa koneksi internet, lalu muat ulang halaman ini.',
+  } : {
+    start: 'LOADING GAME',
+    webgl: 'The game failed to load. Make sure WebGL is enabled in your browser, then reload this page.',
+    reload: 'The game failed to load. Reload this page.',
+    download: 'The game failed to download. Check your internet connection, then reload this page.',
+  };
+  text.textContent = MSG.start;
+  function fail(message) {
+    box.classList.add('failed');
+    text.textContent = message;
+  }
+  window.octobotLoader = {
+    progress: function (value, label) {
+      box.classList.add('measured');
+      fill.style.transform = 'scaleX(' + value + ')';
+      if (label) text.textContent = label;
+    },
+    done: function () {
+      finished = true;
+      box.classList.add('gone');
+      setTimeout(function () { box.remove(); }, 500);
+    },
+    fail: fail,
+  };
+  addEventListener('error', function (e) {
+    if (!finished) fail(MSG.webgl);
+  });
+  addEventListener('unhandledrejection', function () {
+    if (!finished) fail(MSG.reload);
+  });
+  // Wait for one painted frame, so the loader shows before the large script starts working.
+  requestAnimationFrame(function () {
+    setTimeout(function () {
+      var script = document.createElement('script');
+      script.src = 'dist/app.js';
+      script.onerror = function () { fail(MSG.download); };
+      document.body.appendChild(script);
+    }, 0);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Octobot</string>
+    <string name="title_activity_main">Octobot</string>
+    <string name="package_name">id.ahmadarif.octobot</string>
+    <string name="custom_url_scheme">id.ahmadarif.octobot</string>
+</resources>
